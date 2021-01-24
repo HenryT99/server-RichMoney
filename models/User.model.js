@@ -7,7 +7,7 @@ module.exports = {
                       users.ten, 
                       users.status, 
                       role.title 
-                      from users INNER JOIN role ON role.id=users.role_id`;
+                      from users INNER JOIN role ON role.id=users.role_id where role_id != 1`;
     db.query(sql, (err, data) => {
       if (err) throw err;
       return callback(data);
