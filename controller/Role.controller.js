@@ -6,22 +6,32 @@ const roleModel = require("../models/Role.model");
 const Base64 = require("crypto-js/enc-base64");
 
 const { json } = require("body-parser");
-const RoleModel = require("../models/Role.model");
+
+const { verifyToken } = require("../services/verifyToken");
 
 module.exports = {
-  getAllActiveRole(req, res) {
-    const token = req.cookies.Token;
-    const decodeToken = JWT.decode(token, "mk");
-    if (!decodeToken) {
+  async getAllActiveRole(req, res) {
+    try {
+      const token = req.cookies.Token;
+
+      const decodeToken = await verifyToken(token);
+
+      if (!decodeToken) {
+        return res.json({
+          code: 400,
+        });
+      }
+
+      const result = await roleModel.getAllActiveRole();
+
       return res.json({
-        code: 400,
+        code: 200,
+        data: result,
+      });
+    } catch (err) {
+      return res.json({
+        code: 500,
       });
     }
-    roleModel.getAllActiveRole((data) => {
-      res.json({
-        code: 200,
-        data: data,
-      });
-    });
   },
 };

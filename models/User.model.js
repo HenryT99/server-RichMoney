@@ -1,40 +1,63 @@
 const db = require("../db/config");
 
 module.exports = {
-  getUsers: (callback) => {
-    var sql = `select users.email, 
-                      users.ho, 
-                      users.ten, 
-                      users.status, 
-                      role.title 
-                      from users INNER JOIN role ON role.id=users.role_id where role_id != 1`;
-    db.query(sql, (err, data) => {
-      if (err) throw err;
-      return callback(data);
-    });
-  },
-  getUserByEmailPassword: (body, callback) => {
-    var sql = `select * from users where email = ? and matkhau = ? and status = 1`;
-    db.query(sql, [body.email, body.matkhau], (err, data, fields) => {
-      if (err) throw err;
-      if (data) return callback(data[0]);
-      else return callback(null);
+  getAllUsers: () => {
+    return new Promise((resolve, reject) => {
+      var sql = `
+      select
+       t1.id, 
+       t1.email, 
+       t1.ho, 
+       t1.ten, 
+       t1.status, 
+       t1.role_name, 
+       t2.email as parent from 
+        (select 
+          users.id, 
+          users.email, 
+          users.parent_id, 
+          users.ho, 
+          users.ten, 
+          users.status, 
+          role.title as role_name 
+          from users INNER JOIN role 
+          ON users.role_id = role.id) t1, users t2 
+          where t1.parent_id = t2.id
+      `;
+      db.query(sql, (err, data) => {
+        if (err) reject(new Error(err));
+        return resolve(data);
+      });
     });
   },
 
-  getUserByEmail: (body, callback) => {
-    var sql = `select 
-              users.ho, 
-              users.ten, 
-              users.email, 
-              users.status, 
-              users.role_id, 
-              role.title from users 
-              INNER JOIN role ON users.role_id = role.id  where users.email = ?`;
-    db.query(sql, [body.email], (err, data, fields) => {
-      if (err) throw err;
-      if (data) return callback(data[0]);
-      else return callback(null);
+  getUserByEmailPassword: (body) => {
+    return new Promise((resolve, reject) => {
+      var sql = `select * from users where email = ? and matkhau = ? and status = 1`;
+      db.query(sql, [body.email, body.matkhau], (err, data) => {
+        if (err) reject(new Error(err));
+        if (data) return resolve(data[0]);
+        else return resolve(null);
+      });
+    });
+  },
+
+  getUserByEmail: (body) => {
+    return new Promise((resolve, reject) => {
+      var sql = `select 
+      users.ho, 
+      users.ten, 
+      users.email, 
+      users.status, 
+      users.role_id, 
+      role.title from users 
+      INNER JOIN role ON users.role_id = role.id  where users.email = ?`;
+
+      db.query(sql, [body.email], (err, data) => {
+        if (err) reject(new Error(err));
+        if (data) return resolve(data[0]);
+        else return resolve(null);
+      });
     });
   },
 
@@ -91,13 +114,31 @@ module.exports = {
     );
   },
 
-  updateStatusUserByEmail: (body, callback) => {
-    var sql = "update `users` set `status` = ? where `email` = ?";
-    db.query(sql, [body.status, body.email], (err, data) => {
-      if (err) throw err;
-      else {
-        return callback(data.affectedRows);
-      }
+  updateStatusUserByEmail: (body) => {
+    return new Promise((resolve, reject) => {
+      var sql = "update `users` set `status` = ? where `email` = ?";
+      db.query(sql, [body.status, body.email], (err, data) => {
+        if (err) reject(new Error(err));
+        else {
+          return resolve(data.affectedRows);
+        }
+      });
+    });
+  },
+
+  isAdminUser: (body) => {
+    return new Promise((resolve, reject) => {
+      var sql = `select users.email, 
+      users.ho, 
+      users.ten, 
+      users.status, 
+      users.role_id
+      from users  where status = 1`;
+      db.query(sql, (err, data) => {
+        if (err) reject(new Error(err));
+        if (data) return resolve(data[0]);
+        else return resolve(null);
+      });
     });
   },
 };

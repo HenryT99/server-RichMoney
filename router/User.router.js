@@ -10,13 +10,13 @@ router.get("/get-user-login", user.getUserLogin);
 
 router.get("/logout", user.logoutUser);
 
-router.get("/:email", user.getUserByEmailWithToken);
+router.get("/:email", user.getUserByEmail);
 
 router.post("/status", user.updateStatusUserByEmail);
 
 router.post("/update", user.updateUser);
 
-router.get("/delete/:email", user.deleteUserByEmail);
+router.post("/delete/", user.deleteUserByEmail);
 
 router.post("/create", user.createUser);
 
